@@ -1,0 +1,37 @@
+.*
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide#glide-vc
+.glide/
+
+# DEP workspace
+vendor/
+
+# Go workspace and caches
+go.work
+go.sum
+
+# Logs
+*.log
+
+# IDE directories
+.idea/
+.vscode/
+
+# MacOS-specific files
+.DS_Store
+
+# GoLand specific files
+*.iml
+*.ipr
+*.iws
