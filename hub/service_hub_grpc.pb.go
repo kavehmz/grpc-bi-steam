@@ -19,16 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	ServiceHub_CallHTTP_FullMethodName  = "/hub.ServiceHub/CallHTTP"
-	ServiceHub_RelayHTTP_FullMethodName = "/hub.ServiceHub/RelayHTTP"
+	ServiceHub_RelayCall_FullMethodName         = "/hub.ServiceHub/RelayCall"
+	ServiceHub_ServeServiceCalls_FullMethodName = "/hub.ServiceHub/ServeServiceCalls"
 )
 
 // ServiceHubClient is the client API for ServiceHub service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceHubClient interface {
-	CallHTTP(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_CallHTTPClient, error)
-	RelayHTTP(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_RelayHTTPClient, error)
+	RelayCall(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_RelayCallClient, error)
+	ServeServiceCalls(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_ServeServiceCallsClient, error)
 }
 
 type serviceHubClient struct {
@@ -39,31 +39,31 @@ func NewServiceHubClient(cc grpc.ClientConnInterface) ServiceHubClient {
 	return &serviceHubClient{cc}
 }
 
-func (c *serviceHubClient) CallHTTP(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_CallHTTPClient, error) {
+func (c *serviceHubClient) RelayCall(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_RelayCallClient, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ServiceHub_ServiceDesc.Streams[0], ServiceHub_CallHTTP_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ServiceHub_ServiceDesc.Streams[0], ServiceHub_RelayCall_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serviceHubCallHTTPClient{ClientStream: stream}
+	x := &serviceHubRelayCallClient{ClientStream: stream}
 	return x, nil
 }
 
-type ServiceHub_CallHTTPClient interface {
+type ServiceHub_RelayCallClient interface {
 	Send(*CallHTTPRequest) error
 	Recv() (*CallHTTPResponse, error)
 	grpc.ClientStream
 }
 
-type serviceHubCallHTTPClient struct {
+type serviceHubRelayCallClient struct {
 	grpc.ClientStream
 }
 
-func (x *serviceHubCallHTTPClient) Send(m *CallHTTPRequest) error {
+func (x *serviceHubRelayCallClient) Send(m *CallHTTPRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *serviceHubCallHTTPClient) Recv() (*CallHTTPResponse, error) {
+func (x *serviceHubRelayCallClient) Recv() (*CallHTTPResponse, error) {
 	m := new(CallHTTPResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -71,31 +71,31 @@ func (x *serviceHubCallHTTPClient) Recv() (*CallHTTPResponse, error) {
 	return m, nil
 }
 
-func (c *serviceHubClient) RelayHTTP(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_RelayHTTPClient, error) {
+func (c *serviceHubClient) ServeServiceCalls(ctx context.Context, opts ...grpc.CallOption) (ServiceHub_ServeServiceCallsClient, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ServiceHub_ServiceDesc.Streams[1], ServiceHub_RelayHTTP_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ServiceHub_ServiceDesc.Streams[1], ServiceHub_ServeServiceCalls_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serviceHubRelayHTTPClient{ClientStream: stream}
+	x := &serviceHubServeServiceCallsClient{ClientStream: stream}
 	return x, nil
 }
 
-type ServiceHub_RelayHTTPClient interface {
-	Send(*CallHTTPResponse) error
+type ServiceHub_ServeServiceCallsClient interface {
+	Send(*ServiceCall) error
 	Recv() (*CallHTTPRequest, error)
 	grpc.ClientStream
 }
 
-type serviceHubRelayHTTPClient struct {
+type serviceHubServeServiceCallsClient struct {
 	grpc.ClientStream
 }
 
-func (x *serviceHubRelayHTTPClient) Send(m *CallHTTPResponse) error {
+func (x *serviceHubServeServiceCallsClient) Send(m *ServiceCall) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *serviceHubRelayHTTPClient) Recv() (*CallHTTPRequest, error) {
+func (x *serviceHubServeServiceCallsClient) Recv() (*CallHTTPRequest, error) {
 	m := new(CallHTTPRequest)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -107,8 +107,8 @@ func (x *serviceHubRelayHTTPClient) Recv() (*CallHTTPRequest, error) {
 // All implementations must embed UnimplementedServiceHubServer
 // for forward compatibility
 type ServiceHubServer interface {
-	CallHTTP(ServiceHub_CallHTTPServer) error
-	RelayHTTP(ServiceHub_RelayHTTPServer) error
+	RelayCall(ServiceHub_RelayCallServer) error
+	ServeServiceCalls(ServiceHub_ServeServiceCallsServer) error
 	mustEmbedUnimplementedServiceHubServer()
 }
 
@@ -116,11 +116,11 @@ type ServiceHubServer interface {
 type UnimplementedServiceHubServer struct {
 }
 
-func (UnimplementedServiceHubServer) CallHTTP(ServiceHub_CallHTTPServer) error {
-	return status.Errorf(codes.Unimplemented, "method CallHTTP not implemented")
+func (UnimplementedServiceHubServer) RelayCall(ServiceHub_RelayCallServer) error {
+	return status.Errorf(codes.Unimplemented, "method RelayCall not implemented")
 }
-func (UnimplementedServiceHubServer) RelayHTTP(ServiceHub_RelayHTTPServer) error {
-	return status.Errorf(codes.Unimplemented, "method RelayHTTP not implemented")
+func (UnimplementedServiceHubServer) ServeServiceCalls(ServiceHub_ServeServiceCallsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ServeServiceCalls not implemented")
 }
 func (UnimplementedServiceHubServer) mustEmbedUnimplementedServiceHubServer() {}
 
@@ -135,25 +135,25 @@ func RegisterServiceHubServer(s grpc.ServiceRegistrar, srv ServiceHubServer) {
 	s.RegisterService(&ServiceHub_ServiceDesc, srv)
 }
 
-func _ServiceHub_CallHTTP_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServiceHubServer).CallHTTP(&serviceHubCallHTTPServer{ServerStream: stream})
+func _ServiceHub_RelayCall_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ServiceHubServer).RelayCall(&serviceHubRelayCallServer{ServerStream: stream})
 }
 
-type ServiceHub_CallHTTPServer interface {
+type ServiceHub_RelayCallServer interface {
 	Send(*CallHTTPResponse) error
 	Recv() (*CallHTTPRequest, error)
 	grpc.ServerStream
 }
 
-type serviceHubCallHTTPServer struct {
+type serviceHubRelayCallServer struct {
 	grpc.ServerStream
 }
 
-func (x *serviceHubCallHTTPServer) Send(m *CallHTTPResponse) error {
+func (x *serviceHubRelayCallServer) Send(m *CallHTTPResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *serviceHubCallHTTPServer) Recv() (*CallHTTPRequest, error) {
+func (x *serviceHubRelayCallServer) Recv() (*CallHTTPRequest, error) {
 	m := new(CallHTTPRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -161,26 +161,26 @@ func (x *serviceHubCallHTTPServer) Recv() (*CallHTTPRequest, error) {
 	return m, nil
 }
 
-func _ServiceHub_RelayHTTP_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServiceHubServer).RelayHTTP(&serviceHubRelayHTTPServer{ServerStream: stream})
+func _ServiceHub_ServeServiceCalls_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ServiceHubServer).ServeServiceCalls(&serviceHubServeServiceCallsServer{ServerStream: stream})
 }
 
-type ServiceHub_RelayHTTPServer interface {
+type ServiceHub_ServeServiceCallsServer interface {
 	Send(*CallHTTPRequest) error
-	Recv() (*CallHTTPResponse, error)
+	Recv() (*ServiceCall, error)
 	grpc.ServerStream
 }
 
-type serviceHubRelayHTTPServer struct {
+type serviceHubServeServiceCallsServer struct {
 	grpc.ServerStream
 }
 
-func (x *serviceHubRelayHTTPServer) Send(m *CallHTTPRequest) error {
+func (x *serviceHubServeServiceCallsServer) Send(m *CallHTTPRequest) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *serviceHubRelayHTTPServer) Recv() (*CallHTTPResponse, error) {
-	m := new(CallHTTPResponse)
+func (x *serviceHubServeServiceCallsServer) Recv() (*ServiceCall, error) {
+	m := new(ServiceCall)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -196,14 +196,14 @@ var ServiceHub_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "CallHTTP",
-			Handler:       _ServiceHub_CallHTTP_Handler,
+			StreamName:    "RelayCall",
+			Handler:       _ServiceHub_RelayCall_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "RelayHTTP",
-			Handler:       _ServiceHub_RelayHTTP_Handler,
+			StreamName:    "ServeServiceCalls",
+			Handler:       _ServiceHub_ServeServiceCalls_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

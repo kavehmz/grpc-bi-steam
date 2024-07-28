@@ -4,22 +4,21 @@ import (
 	"context"
 	"flag"
 	"log"
-	"time"
 
 	pb "githib.com/regentmarkets/segmented/hub"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func callHTTP(client pb.ServiceHubClient) {
-	stream, err := client.CallHTTP(context.Background())
+func relayCall(client pb.ServiceHubClient) {
+	stream, err := client.RelayCall(context.Background())
 	if err != nil {
 		log.Fatalf("could not call CallHTTP: %v", err)
 	}
 
 	req := &pb.CallHTTPRequest{
 		Method:  "GET",
-		Url:     "http://example.com",
+		Target:  "/notification/latest",
 		Headers: map[string]string{"Accept": "application/json"},
 		Body:    "",
 	}
@@ -37,29 +36,45 @@ func callHTTP(client pb.ServiceHubClient) {
 	log.Printf("Response: %v", res)
 }
 
-func relayHTTP(client pb.ServiceHubClient) {
+func serveServiceCalls(client pb.ServiceHubClient) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	stream, err := client.RelayHTTP(ctx)
+	stream, err := client.ServeServiceCalls(ctx)
 	if err != nil {
 		log.Fatalf("could not call RelayHTTP: %v", err)
 	}
-	// for {
-	req, err := stream.Recv()
-	if err != nil {
-		log.Fatalf("could not receive response: %v", err)
-	}
 
-	res := &pb.CallHTTPResponse{
-		StatusCode: 200,
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       req.Body + " :::: " + time.Now().String(),
+	s := &pb.ServiceCall{
+		Details: &pb.ServiceCallDetails{
+			ServiceName: "notification",
+		},
+		Response: nil,
 	}
-
-	if err := stream.Send(res); err != nil {
+	if err := stream.Send(s); err != nil {
 		log.Fatalf("could not send request: %v", err)
 	}
-	// }
+
+	for i := 0; i < 1; i++ {
+		req, err := stream.Recv()
+		if err != nil {
+			log.Fatalf("could not receive response: %v", err)
+		}
+
+		res := &pb.CallHTTPResponse{
+			StatusCode: 200,
+			Headers:    map[string]string{"Content-Type": "application/json"},
+			Body:       "served:" + req.Target,
+		}
+
+		s := &pb.ServiceCall{
+			Details:  nil,
+			Response: res,
+		}
+		if err := stream.Send(s); err != nil {
+			log.Fatalf("could not send request: %v", err)
+		}
+
+	}
 }
 
 func main() {
@@ -70,14 +85,14 @@ func main() {
 	defer conn.Close()
 	client := pb.NewServiceHubClient(conn)
 
-	relay := flag.Bool("relay", false, "enable relay")
+	relay := flag.Bool("serve", false, "accept a service call for this service")
 	flag.Parse()
 
 	if *relay {
-		relayHTTP(client)
+		serveServiceCalls(client)
 	} else {
-		callHTTP(client)
-		callHTTP(client)
-		callHTTP(client)
+		relayCall(client)
+		relayCall(client)
+		relayCall(client)
 	}
 }

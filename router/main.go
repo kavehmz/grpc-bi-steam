@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"strings"
 
 	pb "githib.com/regentmarkets/segmented/hub"
 	"google.golang.org/grpc"
@@ -17,9 +18,13 @@ type chRelay struct {
 	resCh chan *pb.CallHTTPResponse
 }
 
-var ch = make(chan *chRelay)
+var chPool = make(map[string]chan *chRelay)
 
-func (s *server) CallHTTP(stream pb.ServiceHub_CallHTTPServer) error {
+func init() {
+	chPool["notification"] = make(chan *chRelay)
+}
+
+func (s *server) RelayCall(stream pb.ServiceHub_RelayCallServer) error {
 	for {
 		req, err := stream.Recv()
 		_ = req
@@ -27,17 +32,36 @@ func (s *server) CallHTTP(stream pb.ServiceHub_CallHTTPServer) error {
 			return err
 		}
 
-		p := &chRelay{req: req, resCh: make(chan *pb.CallHTTPResponse)}
-		ch <- p
-		res := <-p.resCh
-		if err := stream.Send(res); err != nil {
-			return err
+		service, _ := getFirstPartOfPath(req.Target)
+		log.Println(service)
+		if ch, found := chPool[service]; found {
+			p := &chRelay{req: req, resCh: make(chan *pb.CallHTTPResponse)}
+			ch <- p
+			res := <-p.resCh
+			if err := stream.Send(res); err != nil {
+				return err
+			}
+		} else {
+			res := &pb.CallHTTPResponse{
+				StatusCode: 500,
+			}
+			if err := stream.Send(res); err != nil {
+				return err
+			}
 		}
 	}
 }
 
-func (s *server) RelayHTTP(stream pb.ServiceHub_RelayHTTPServer) error {
+func (s *server) ServeServiceCalls(stream pb.ServiceHub_ServeServiceCallsServer) error {
 	ctx := stream.Context()
+	rec, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	ch := chPool[rec.Details.ServiceName]
+
+	// here we route the calls to different channels
 	for {
 		select {
 		case <-ctx.Done():
@@ -49,14 +73,23 @@ func (s *server) RelayHTTP(stream pb.ServiceHub_RelayHTTPServer) error {
 				return err
 			}
 
-			res, err := stream.Recv()
-			p.resCh <- res
+			rec, err := stream.Recv()
 			if err != nil {
 				return err
 			}
+			p.resCh <- rec.Response
 		}
 
 	}
+}
+
+// getFirstPartOfPath extracts the first part of the path from a URL string.
+func getFirstPartOfPath(target string) (string, error) {
+	parts := strings.Split(strings.TrimPrefix(target, "/"), "/")
+	if len(parts) > 0 {
+		return parts[0], nil
+	}
+	return "", nil
 }
 
 func main() {

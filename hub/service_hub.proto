@@ -6,19 +6,28 @@ option go_package = "githib.com/regentmarkets/segmented";
 package hub;
 
 service ServiceHub {
-    rpc CallHTTP (stream CallHTTPRequest) returns (stream CallHTTPResponse);
-    rpc RelayHTTP (stream CallHTTPResponse) returns (stream CallHTTPRequest);
+    rpc RelayCall (stream CallHTTPRequest) returns (stream CallHTTPResponse);
+    rpc ServeServiceCalls (stream ServiceCall) returns (stream CallHTTPRequest);
 }
 
 message CallHTTPRequest {
-    string method = 1;
-    string url = 2;
-    map<string, string> headers = 3;
-    string body = 4;
+    string method = 2;
+    string target = 3;
+    map<string, string> headers = 4;
+    string body = 5;
+}
+
+message ServiceCall {
+    ServiceCallDetails details = 1;
+    CallHTTPResponse response = 2;
 }
 
 message CallHTTPResponse {
     int32 statusCode = 1;
     map<string, string> headers = 2;
     string body = 3;
+}
+
+message ServiceCallDetails {
+    string serviceName = 2;
 }

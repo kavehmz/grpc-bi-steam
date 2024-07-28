@@ -7,3 +7,15 @@ proto:
 
 clean:
 	rm -f hub/*.pb.go
+
+router:
+	go run router/main.go
+
+relay:
+	go run relay/main.go
+
+serve:
+	go run relay/main.go -target_service htt://localhost:8081/
+
+myservice:
+	go run myservice/main.go
