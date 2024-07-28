@@ -1,0 +1,7 @@
+# Segmented Services Architecture
+
+# Architecture
+
+![Architecture](./static/arch.png)
+
+Link to D2 Playground is [here](https://play.d2lang.com/?script=tJQxD9owEIV3_4ondS1hR1UXOrQbQuzIcg5i1diRfZRGkP9e4SRtHCUkVcsW2e983727iyflLheyuWTt7FGZa2DyG9wFMLgL5H9oRc0d8AGWpN-AXbkydGIB1EIAyllLip0_pvFdHP0sjbTt0eOSx0PgC5XGVZRD26BzGiRHC5aJVv6N8d26W0DhbmAHJY0ZxExrG8LnJxcE767x5af00VXhychqBrlgLjfrdZRmxilp1nfrWJ-0itqPKU89zDDmLj6tXjj49XDYiVqIfpa0Z8nNoGMLne8_scz3fsTfuZ5a8qfw_otvxZ-HGnM07VIKG3v0_gmqhTB0lqrqdnU-W88pSFt15oALybBEeUjNc_4fN6pVHwodIJWikkMcmICT8__FgibT4LcVz2a8iEw6RFxFlr00aJv7m3vbdThA2ryxuF-q5mxAM_ozzab2GavPSAvIOvbzbr8d3fJsfOzmnppCa2p6EbzfTXAsimxHdJn4VwAAAP__&theme=0&sketch=1&layout=elk&).
