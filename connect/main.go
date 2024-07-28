@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func serveServiceCalls(targetService string, client pb.ServiceHubClient) {
+func serveServiceCalls(serviceName, targetService string, client pb.ServiceHubClient) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	stream, err := client.ServeServiceCalls(ctx)
@@ -23,7 +23,7 @@ func serveServiceCalls(targetService string, client pb.ServiceHubClient) {
 
 	s := &pb.ServiceCall{
 		Details: &pb.ServiceCallDetails{
-			ServiceName: "notification",
+			ServiceName: serviceName,
 		},
 		Response: nil,
 	}
@@ -51,28 +51,6 @@ func serveServiceCalls(targetService string, client pb.ServiceHubClient) {
 		}
 
 	}
-}
-
-func main() {
-	targetService := flag.String("target", "", "The service URL to send the request to")
-	flag.Parse()
-
-	conn, err := grpc.NewClient(":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewServiceHubClient(conn)
-
-	ch := make(chan bool, 5)
-	for {
-		ch <- true
-		go func() {
-			serveServiceCalls(*targetService, client)
-			<-ch
-		}()
-	}
-
 }
 
 func makeHTTPRequest(service_url string, req *pb.CallHTTPRequest) (*pb.CallHTTPResponse, error) {
@@ -116,4 +94,27 @@ func makeHTTPRequest(service_url string, req *pb.CallHTTPRequest) (*pb.CallHTTPR
 	}
 
 	return response, nil
+}
+
+func main() {
+	targetService := flag.String("target", "", "The service URL to send the request to")
+	serviceName := flag.String("name", "", "The service URL to send the request to")
+	flag.Parse()
+
+	conn, err := grpc.NewClient(":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewServiceHubClient(conn)
+
+	ch := make(chan bool, 5)
+	for {
+		ch <- true
+		go func() {
+			serveServiceCalls(*serviceName, *targetService, client)
+			<-ch
+		}()
+	}
+
 }

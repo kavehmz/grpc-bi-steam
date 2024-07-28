@@ -13,7 +13,7 @@ type StatusResponse struct {
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	response := StatusResponse{
-		Status: "pending",
+		Status: "notification_pending",
 		Time:   time.Now().String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -22,5 +22,5 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/notification/status", statusHandler)
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8080", nil)
 }

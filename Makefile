@@ -14,8 +14,11 @@ route:
 relay:
 	go run relay/main.go
 
-connect:
-	go run connect/main.go -target http://localhost:8080
+connect_notification:
+	go run connect/main.go -name notification -target http://localhost:8080
+
+connect_recommendation:
+	go run connect/main.go -name recommendation -target http://localhost:8081
 
 notification_service:
 	go run sample_external_services/notification_service/main.go

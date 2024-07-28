@@ -22,5 +22,5 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/recommendation/list", statusHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8081", nil)
 }
