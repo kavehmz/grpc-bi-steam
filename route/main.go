@@ -20,10 +20,6 @@ type chRelay struct {
 
 var chPool = make(map[string]chan *chRelay)
 
-func init() {
-	chPool["notification"] = make(chan *chRelay)
-}
-
 func (s *server) RelayCall(stream pb.ServiceHub_RelayCallServer) error {
 	for {
 		req, err := stream.Recv()
@@ -59,7 +55,11 @@ func (s *server) ServeServiceCalls(stream pb.ServiceHub_ServeServiceCallsServer)
 		return err
 	}
 
-	ch := chPool[rec.Details.ServiceName]
+	ch, found := chPool[rec.Details.ServiceName]
+	if !found {
+		ch = make(chan *chRelay)
+		chPool[rec.Details.ServiceName] = ch
+	}
 
 	// here we route the calls to different channels
 	for {

@@ -3,17 +3,18 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type StatusResponse struct {
-	Status string `json:"status"`
-	Count  int    `json:"count"`
+	Status string
+	Time   string
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	response := StatusResponse{
 		Status: "pending",
-		Count:  100,
+		Time:   time.Now().String(),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -21,5 +22,5 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/notification/status", statusHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8081", nil)
 }

@@ -1,4 +1,4 @@
-.PHONY: all proto clean
+.PHONY: all proto clean router relay serve myservice
 
 all: proto
 
@@ -8,14 +8,17 @@ proto:
 clean:
 	rm -f hub/*.pb.go
 
-router:
-	go run router/main.go
+route:
+	go run route/main.go
 
 relay:
 	go run relay/main.go
 
-serve:
-	go run relay/main.go -target_service htt://localhost:8081/
+connect:
+	go run connect/main.go -target http://localhost:8080
 
-myservice:
-	go run myservice/main.go
+notification_service:
+	go run sample_external_services/notification_service/main.go
+
+recommendation_service:
+	go run sample_external_services/recommendation_service/main.go

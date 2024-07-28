@@ -54,7 +54,7 @@ func serveServiceCalls(targetService string, client pb.ServiceHubClient) {
 }
 
 func main() {
-	targetService := flag.String("target_service", "", "The service URL to send the request to")
+	targetService := flag.String("target", "", "The service URL to send the request to")
 	flag.Parse()
 
 	conn, err := grpc.NewClient(":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -64,7 +64,14 @@ func main() {
 	defer conn.Close()
 	client := pb.NewServiceHubClient(conn)
 
-	serveServiceCalls(*targetService, client)
+	ch := make(chan bool, 5)
+	for {
+		ch <- true
+		go func() {
+			serveServiceCalls(*targetService, client)
+			<-ch
+		}()
+	}
 
 }
 
