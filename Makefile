@@ -1,4 +1,4 @@
-.PHONY: all proto clean router relay serve myservice
+.PHONY: all proto clean route relay connect notification_service recommendation_service
 
 all: proto
 
